@@ -39,28 +39,10 @@ def start_or_stop_ec2_instance(action, instance_id):
         return None
 
 
-def update_ssh_config(file, public_dns_name):
-    with open(file, "r+") as config_reader:
-        new_file_lines = []
-        data = config_reader.readlines()
-        for lines in data:
-            splitted_line = []
-            for line in lines.split(" "):
-                if "compute.amazonaws.com" in line:
-                    line = f"{public_dns_name}\n"
-                splitted_line.append(line)
-            new_file_lines.append(" ".join(splitted_line))
-    with open(file, "w") as config_writer:
-        config_writer.writelines(new_file_lines)
-
-    print("ssh config updated")
-
-
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("action", action="store", choices=["ls", "start", "stop"], type=str)
     parser.add_argument("--ec2-name", type=str, default="infinity-gpu-cuda-11.4")
-    parser.add_argument("--config-name", type=str, default="ec2-dev-vs-code")
     parser.add_argument("--config-file", type=str, default=str(Path.home().joinpath(".ssh/config")))
     parser.add_argument("--profile", type=str, default="hf-sm")
     parser.add_argument("--region", type=str, default="eu-west-1")
@@ -74,6 +56,7 @@ def main():
     os.environ["AWS_DEFAULT_REGION"] = args.region
     os.environ["AWS_PROFILE"] = args.profile
     ssh_config = read_ssh_config(args.config_file)
+    ssh_config.set(args.ec2_name, Hostname=123)
     if args.action == "ls":
         print("hosts", ssh_config.hosts())
 
@@ -81,8 +64,8 @@ def main():
         instance_id = get_instance_id(args.ec2_name, args.action)
         public_dns_name = start_or_stop_ec2_instance(args.action, instance_id)
         if public_dns_name:
-            update_ssh_config(args.config_file, public_dns_name)
-            ssh_config.set(args.config_name, Hostname=public_dns_name)
+            ssh_config.set(args.ec2_name, Hostname=public_dns_name)
+            ssh_config.save()
 
     elif args.action == "stop":
         instance_id = get_instance_id(args.ec2_name, args.action)
