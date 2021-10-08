@@ -41,11 +41,16 @@ def start_or_stop_ec2_instance(action, instance_id):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", action="store", choices=["ls", "start", "stop"], type=str)
+    parser.add_argument("action", action="store", choices=["ls", "start", "add", "stop"], type=str)
     parser.add_argument("--ec2-name", type=str, default="infinity-gpu-cuda-11.4")
     parser.add_argument("--config-file", type=str, default=str(Path.home().joinpath(".ssh/config")))
     parser.add_argument("--profile", type=str, default="hf-sm")
     parser.add_argument("--region", type=str, default="eu-west-1")
+
+    # arguments for adding new config
+    parser.add_argument("--ssh_key_file", type=str, default=str(Path.home().joinpath(".ssh/")))
+    parser.add_argument("--hostname", type=str, default="placeholder")
+    parser.add_argument("--user", type=str, default="ubuntu")
 
     args, _ = parser.parse_known_args()
     return args
@@ -56,9 +61,19 @@ def main():
     os.environ["AWS_DEFAULT_REGION"] = args.region
     os.environ["AWS_PROFILE"] = args.profile
     ssh_config = read_ssh_config(args.config_file)
-    ssh_config.set(args.ec2_name, Hostname=123)
+
+    print(list(ssh_config.hosts()))
+    print(args.ec2_name in list(ssh_config.hosts()))
+
     if args.action == "ls":
         print("hosts", ssh_config.hosts())
+
+    elif args.action == "add":
+        if args.ec2_name in list(ssh_config.hosts()):
+            raise ValueError(f"Host {args.ec2_name} already exists in {args.config_file}")
+        ssh_config.add(args.ec2_name, HostName=args.hostname, IdentityFile=args.ssh_key_file, User=args.user, Port=22)
+        ssh_config.save()
+        print(f"Added new host {args.ec2_name} to {args.config_file}")
 
     elif args.action == "start":
         instance_id = get_instance_id(args.ec2_name, args.action)

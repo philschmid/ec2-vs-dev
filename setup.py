@@ -6,7 +6,7 @@ from setuptools import find_packages, setup
 # We don't declare our dependency on transformers here because we build with
 # different packages for different variants
 
-VERSION = "1.0.2"
+VERSION = "1.1.0"
 
 install_requires = [
     "boto3",
