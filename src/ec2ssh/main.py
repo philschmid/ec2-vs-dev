@@ -62,9 +62,6 @@ def main():
     os.environ["AWS_PROFILE"] = args.profile
     ssh_config = read_ssh_config(args.config_file)
 
-    print(list(ssh_config.hosts()))
-    print(args.ec2_name in list(ssh_config.hosts()))
-
     if args.action == "ls":
         print("hosts", ssh_config.hosts())
 
