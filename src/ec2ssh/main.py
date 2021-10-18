@@ -6,6 +6,7 @@ from pathlib import Path
 from botocore.exceptions import ClientError
 from sshconf import read_ssh_config
 from os.path import expanduser
+import subprocess
 
 
 def get_instance_id(name, action):
@@ -39,6 +40,11 @@ def start_or_stop_ec2_instance(action, instance_id):
         return None
 
 
+def start_vs_code(remote_name=None, folder=None):
+    print(f"starting vs code with remote: {remote_name}")
+    process = subprocess.run(f"code --remote ssh-remote+{remote_name} {folder}".split(" "))
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("action", action="store", choices=["ls", "start", "add", "stop"], type=str)
@@ -46,6 +52,7 @@ def parse_args():
     parser.add_argument("--config-file", type=str, default=str(Path.home().joinpath(".ssh/config")))
     parser.add_argument("--profile", type=str, default="hf-sm")
     parser.add_argument("--region", type=str, default="eu-west-1")
+    parser.add_argument("--target_dir", type=str, default="/home")
 
     # arguments for adding new config
     parser.add_argument("--ssh_key_file", type=str, default=str(Path.home().joinpath(".ssh/")))
@@ -78,6 +85,7 @@ def main():
         if public_dns_name:
             ssh_config.set(args.ec2_name, Hostname=public_dns_name)
             ssh_config.save()
+        start_vs_code(args.ec2_name, args.target_dir)
 
     elif args.action == "stop":
         instance_id = get_instance_id(args.ec2_name, args.action)
