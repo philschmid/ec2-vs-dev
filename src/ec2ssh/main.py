@@ -82,10 +82,9 @@ def read_aws_configuration(host=None):
 def write_aws_configuration(host=None, region=None, profile=None):
     ec2ssh_config = read_json_file_if_exists(str(EC2SSH_PATH))
     if ec2ssh_config:
-        all_hosts = json.load(f)
-        all_hosts[host] = {"region": region, "profile": profile}
+        ec2ssh_config[host] = {"region": region, "profile": profile}
         with open(str(EC2SSH_PATH), "w+") as f:
-            json.dump(all_hosts, f)
+            json.dump(ec2ssh_config, f)
     else:
         with open(str(EC2SSH_PATH), "w+") as f:
             all_hosts = {}
