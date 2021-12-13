@@ -151,10 +151,11 @@ def main():
 
     remote_host = {**remote_host, **read_aws_configuration(args.host)}
 
-    if len(args.target_dir.split("/")) < 2:
+    args.target_dir = Path(args.target_dir)
+    if len(str(args.target_dir).split("/")) <= 1:
         args.target_dir = Path("home").joinpath(remote_host["user"]).joinpath(args.target_dir)
     # set target_dir
-    if args.target_dir.split("/")[2] != remote_host["user"]:
+    if str(args.target_dir).split("/")[1] != remote_host["user"]:
         args.target_dir = Path("home").joinpath(remote_host["user"])
 
     # check if aws config exists and override defaults
