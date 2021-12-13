@@ -22,6 +22,9 @@ ec2ssh start infinity-cpu
 ec2ssh start infinity-cpu -d /home/user/remote/directory
 ```
 
+```bash
+ec2ssh start infinity-cpu -d directory
+```
 
 ### Stop ec2 instance
 
